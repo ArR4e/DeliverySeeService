@@ -1,0 +1,80 @@
+openapi: "3.0.3"
+info:
+  title: "DeliveryFeeService API"
+  description: "DeliveryFeeService API"
+  version: "1.0.0"
+servers:
+  - url: "http://localhost"
+paths:
+  /api/v1/delivery/calculate-fee:
+    get:
+      summary: "Calculates delivery fee"
+      description: "Delivery fee calculations are based on qeury parameters vehicle and city. Additional fees are calculated based on most recent weather data for the given city"
+      operationId: ""
+      parameters:
+        - name: "city"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+            enum:
+              - "TALLINN"
+              - "TARTU"
+              - "PARNU"
+        - name: "vehicle"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+            enum:
+              - "CAR"
+              - "BIKE"
+              - "SCOOTER"
+      responses:
+        "200":
+          description: "Returns the total delivery fee calculated in euros"
+          content:
+            'application/json':
+              schema:
+                type: number
+                format: double
+                example:
+                  3.5
+        "422":
+          description: "Calculations requested break restrictions"
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+              example:
+                statusCode: 422
+                error: "Unprocessable Entity"
+                message: "Usage of selected vehicle type is forbidden"
+        "503":
+          description: "Database has not been filled with weather data yet, calculations cannot be performed"
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+              example:
+                statusCode: 503
+                error: "Service Unavailable"
+                message: "Currently, it is impossible to calculate fee"
+                description: "The database currently has no entries for specified city, please wait for about an hour"
+
+components:
+  schemas:
+    ErrorMessage:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+        error:
+          type: string
+        message:
+          type: string
+        description:
+          type: string
+
+
